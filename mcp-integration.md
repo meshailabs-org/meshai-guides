@@ -111,18 +111,25 @@ OpenAI fully adopted MCP in 2025 and supports it across their platform including
 If you have ChatGPT Pro, Business, Enterprise, or Edu access, you can add MeshAI as a custom connector:
 
 1. **Access Custom Connectors**:
-   - Go to ChatGPT settings
-   - Navigate to "Connectors" or "Custom Connectors"
-   - Click "Add Custom Connector"
+   - Click on your name at the bottom left of ChatGPT
+   - Select "Settings"
+   - Navigate to "Connectors"
+   - If you don't see a "Create" button at the top:
+     - Go to "Advanced Settings"
+     - Enable "Developer Mode"
+     - Return to the Connectors section
 
-2. **Configure MeshAI MCP Server**:
+2. **Create Custom Connector**:
+   - Click the "Create" button at the top of the Connectors page
+
+3. **Configure MeshAI MCP Server**:
    - **Name**: MeshAI Agent Platform
    - **URL**: `https://mcp.meshai.dev/v1/mcp`
    - **Transport**: HTTP
    - **Authentication**: Bearer Token
    - **Token**: `YOUR_API_KEY`
 
-3. **Enable the Connector**:
+4. **Enable the Connector**:
    - Save the configuration
    - Enable the MeshAI connector in your ChatGPT session
    - You can now use natural language to interact with your agents
