@@ -20,62 +20,53 @@ The MeshAI MCP server (`mcp.meshai.dev`) provides a bridge between AI assistants
 - **Access Real-time Data**: Query agent status, execution history, and performance metrics
 - **Manage Resources**: Create, update, and monitor agents across different frameworks
 
-## Installation
+## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ or Python 3.8+
 - MeshAI account with API access
+- API key from the MeshAI dashboard
 - Claude Desktop app (for Claude integration)
 
-### Install MeshAI MCP Server
+### MeshAI MCP Server Access
 
-#### Option 1: Using npm (Node.js)
-```bash
-npm install -g @meshai/mcp-server
-```
+The MeshAI MCP server is deployed and available at `https://mcp.meshai.dev`. You don't need to install any packages - simply configure your AI assistant to connect to our hosted service.
 
-#### Option 2: Using pip (Python)
-```bash
-pip install meshai-mcp-server
-```
+### Obtaining Your API Key
 
-#### Option 3: Using npx (No installation)
-```bash
-npx @meshai/mcp-server
-```
+1. Log in to the [MeshAI Admin Dashboard](https://app.meshai.dev)
+2. Navigate to the API Keys section
+3. Create a new API key or use an existing one
+4. Copy the key for configuration
 
 ## Configuration
 
-### For Claude Desktop
+### Direct API Access
 
-1. Open Claude Desktop settings
-2. Navigate to Developer > Model Context Protocol
-3. Add the MeshAI MCP server configuration:
+The MeshAI MCP server exposes a REST API at `https://mcp.meshai.dev`. You can interact with it directly using HTTP requests:
 
-```json
-{
-  "mcpServers": {
-    "meshai": {
-      "command": "npx",
-      "args": ["@meshai/mcp-server"],
-      "env": {
-        "MESHAI_API_KEY": "your-api-key-here",
-        "MESHAI_API_URL": "https://api.meshai.dev"
-      }
-    }
-  }
-}
+```bash
+curl -X POST https://mcp.meshai.dev/api/v1/execute \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task": "Analyze customer feedback",
+    "capabilities": ["sentiment-analysis"]
+  }'
 ```
 
-### Environment Variables
+### For Claude Desktop (Coming Soon)
 
-Configure the MCP server with these environment variables:
+MCP integration for Claude Desktop is currently in development. Once available, you'll be able to configure it to connect directly to our hosted service at `mcp.meshai.dev`.
 
-- `MESHAI_API_KEY`: Your MeshAI API key (required)
-- `MESHAI_API_URL`: MeshAI API endpoint (default: `https://api.meshai.dev`)
-- `MESHAI_RUNTIME_URL`: Runtime endpoint (default: `https://runtime.meshai.dev`)
-- `MCP_SERVER_PORT`: Server port for standalone mode (default: `3000`)
+### Authentication
+
+All requests to the MCP server require authentication using your MeshAI API key:
+
+- **Header**: `Authorization: Bearer YOUR_API_KEY`
+- **Base URL**: `https://mcp.meshai.dev`
+- **API Endpoint**: `https://api.meshai.dev`
+- **Runtime Endpoint**: `https://runtime.meshai.dev`
 
 ## Usage Examples
 
@@ -181,28 +172,29 @@ Register custom agents through MCP:
 
 For long-running tasks, the MCP server supports streaming responses:
 
-```javascript
-{
-  "tool": "mesh_execute_stream",
-  "parameters": {
+```bash
+curl -X POST https://mcp.meshai.dev/api/v1/execute \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -H "Accept: text/event-stream" \
+  -d '{
     "task": "Generate comprehensive market analysis",
     "stream": true
-  }
-}
+  }'
 ```
 
 ### Context Preservation
 
 The MCP server maintains context across interactions:
 
-```javascript
-{
-  "tool": "mesh_continue_task",
-  "parameters": {
+```bash
+curl -X POST https://mcp.meshai.dev/api/v1/continue \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
     "task_id": "previous-task-id",
     "additional_instructions": "Focus on European markets"
-  }
-}
+  }'
 ```
 
 ## Security & Authentication
@@ -250,10 +242,13 @@ Error: Task execution timeout
 
 ### Debug Mode
 
-Enable debug logging for troubleshooting:
+Enable debug logging by adding the debug parameter to your API requests:
 
 ```bash
-MESHAI_DEBUG=true npx @meshai/mcp-server
+curl -X POST https://mcp.meshai.dev/api/v1/execute?debug=true \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"task": "Test task"}'
 ```
 
 ### Health Check
@@ -302,34 +297,55 @@ ws.on('message', (data) => {
 
 ### Python Integration
 ```python
-from meshai_mcp import MCPClient
+import requests
+import os
 
-client = MCPClient(api_key="your-api-key")
-result = client.execute(
-    task="Analyze sentiment of customer reviews",
-    capabilities=["sentiment-analysis"]
+api_key = os.environ.get('MESHAI_API_KEY')
+headers = {
+    'Authorization': f'Bearer {api_key}',
+    'Content-Type': 'application/json'
+}
+
+response = requests.post(
+    'https://mcp.meshai.dev/api/v1/execute',
+    headers=headers,
+    json={
+        'task': 'Analyze sentiment of customer reviews',
+        'capabilities': ['sentiment-analysis']
+    }
 )
+
+result = response.json()
 print(result)
 ```
 
 ### Node.js Integration
 ```javascript
-const { MCPClient } = require('@meshai/mcp-client');
+const fetch = require('node-fetch');
 
-const client = new MCPClient({
-  apiKey: process.env.MESHAI_API_KEY
+const apiKey = process.env.MESHAI_API_KEY;
+
+const response = await fetch('https://mcp.meshai.dev/api/v1/execute', {
+  method: 'POST',
+  headers: {
+    'Authorization': `Bearer ${apiKey}`,
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    task: 'Generate product descriptions',
+    capabilities: ['content-generation']
+  })
 });
 
-const result = await client.execute({
-  task: 'Generate product descriptions',
-  capabilities: ['content-generation']
-});
+const result = await response.json();
+console.log(result);
 ```
 
 ## Support & Resources
 
 - **Documentation**: https://docs.meshai.dev/mcp
-- **GitHub**: https://github.com/meshailabs/mcp-server
+- **MCP Server**: https://mcp.meshai.dev
+- **API Status**: https://mcp.meshai.dev/status
 - **Discord Community**: https://discord.gg/meshai
 - **Support Email**: support@meshai.dev
 
