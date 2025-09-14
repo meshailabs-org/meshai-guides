@@ -13,7 +13,7 @@ The Model Context Protocol (MCP) is an open standard that enables AI models to s
 
 ## MeshAI MCP Server
 
-The MeshAI MCP server (`https://mcp.meshai.dev/v1/mcp`) provides a Model Context Protocol interface that enables AI assistants like Claude to interact with your MeshAI infrastructure. This integration allows you to:
+The MeshAI MCP server (`https://mcp.meshai.dev/v1/mcp`) provides a Model Context Protocol interface that enables AI assistants like Claude Code and Google Gemini CLI to interact with your MeshAI infrastructure. This integration allows you to:
 
 - **Execute Agent Tasks**: Run any registered MeshAI agent directly from your AI conversation
 - **Orchestrate Workflows**: Trigger complex multi-agent workflows through simple natural language commands
@@ -29,7 +29,7 @@ The MCP server acts as a secure gateway to your MeshAI deployment, requiring API
 
 - MeshAI account with API access
 - API key from the MeshAI dashboard
-- Claude Code (for Claude integration)
+- Claude Code or Google Gemini CLI (for AI assistant integration)
 
 ### MeshAI MCP Server Access
 
@@ -60,7 +60,7 @@ curl -X POST https://mcp.meshai.dev/api/v1/execute \
 
 ### For Claude Code
 
-You can now connect Claude Code to the MeshAI MCP server using the following command:
+You can connect Claude Code to the MeshAI MCP server using the following command:
 
 ```bash
 claude mcp add meshai-mcp https://mcp.meshai.dev/v1/mcp -t http -H "Authorization: Bearer YOUR_API_KEY"
@@ -68,11 +68,48 @@ claude mcp add meshai-mcp https://mcp.meshai.dev/v1/mcp -t http -H "Authorizatio
 
 Replace `YOUR_API_KEY` with your actual API key from the MeshAI dashboard.
 
-Once connected, Claude will have access to all MeshAI tools and can help you:
+### For Google Gemini CLI
+
+Gemini CLI supports MCP servers through its `settings.json` configuration. You can add the MeshAI MCP server in two ways:
+
+#### Option 1: Using CLI Command
+```bash
+gemini mcp add meshai-mcp
+```
+
+Then configure it with:
+- URL: `https://mcp.meshai.dev/v1/mcp`
+- Transport: HTTP
+- Headers: Authorization Bearer token
+
+#### Option 2: Manual Configuration
+Edit your `settings.json` file (located in your project or user config directory):
+
+```json
+{
+  "mcpServers": {
+    "meshai": {
+      "httpUrl": "https://mcp.meshai.dev/v1/mcp",
+      "headers": {
+        "Authorization": "Bearer YOUR_API_KEY"
+      },
+      "timeout": 30000,
+      "trust": true
+    }
+  }
+}
+```
+
+**Note**: Gemini CLI currently supports HTTP transport. SSE transport support for real-time updates is coming soon.
+
+### Features Available
+Once connected, both Claude Code and Gemini CLI will have access to all MeshAI tools:
 - Execute tasks across your agent network
 - Query and manage agents
 - Create and monitor workflows
 - Check system status and metrics
+- Batch execute multiple tasks
+- Access system performance data
 
 ### Transport Method
 
@@ -93,11 +130,11 @@ All requests to the MCP server require authentication using your MeshAI API key:
 - **API Endpoint**: `https://api.meshai.dev`
 - **Runtime Endpoint**: `https://runtime.meshai.dev`
 
-## Usage Examples with Claude Code
+## Usage Examples
+
+### With Claude Code
 
 Once you've connected Claude Code to MeshAI MCP, you can use natural language to interact with your agents:
-
-### Example Conversations
 
 **Execute a task:**
 ```
@@ -113,18 +150,55 @@ Claude: Let me list the agents with those specifications...
 [Uses list_agents tool with filters]
 ```
 
+### With Gemini CLI
+
+After configuring MeshAI MCP in Gemini CLI, you can interact with your agents:
+
+**Execute a task:**
+```bash
+gemini "Using MeshAI, generate a summary of today's market trends"
+# Gemini will use the mesh_execute tool via MCP
+```
+
+**List agents:**
+```bash
+gemini "List all available MeshAI agents for text generation"
+# Uses list_agents tool with capability filter
+```
+
+**Check task status:**
+```bash
+gemini "Check the status of MeshAI task abc-123"
+# Uses get_task_status tool
+```
+
+**Batch operations:**
+```bash
+gemini "Execute these three tasks in parallel using MeshAI: 
+1. Analyze customer sentiment
+2. Generate weekly report
+3. Update dashboard metrics"
+# Uses batch_execute tool
+```
+
+### Common Use Cases
+
 **Monitor tasks:**
 ```
-You: "What tasks are currently running in MeshAI?"
-Claude: I'll check the active tasks for you...
-[Uses list_active_tasks tool]
+"What tasks are currently running in MeshAI?"
+# Uses list_active_tasks tool
 ```
 
 **Run workflows:**
 ```
-You: "Execute the customer feedback workflow in MeshAI"
-Claude: I'll run that workflow for you...
-[Uses execute_workflow tool]
+"Execute the customer feedback workflow in MeshAI"
+# Uses execute_workflow tool
+```
+
+**System health:**
+```
+"Show me MeshAI system statistics"
+# Uses get_system_stats tool
 ```
 
 ## Direct API Usage Examples
@@ -336,7 +410,7 @@ The MCP server implements rate limiting to prevent abuse:
 
 ### Common Issues
 
-#### Claude Code Connection Failed
+#### Claude Code / Gemini CLI Connection Failed
 ```
 Error: Failed to connect to MeshAI MCP server
 ```
@@ -372,14 +446,20 @@ Error: Task execution timeout
 2. Check agent performance and availability
 3. Consider breaking large tasks into smaller ones
 
-#### MCP Tools Not Available in Claude
+#### MCP Tools Not Available
 ```
-Error: MCP tools not showing in Claude Code
+Error: MCP tools not showing in Claude Code or Gemini CLI
 ```
-**Solution**:
+**Solution for Claude Code**:
 1. Restart Claude Code after adding the MCP server
 2. Check the connection status with: `claude mcp list`
 3. Verify the server URL is correct: `https://mcp.meshai.dev/v1/mcp`
+
+**Solution for Gemini CLI**:
+1. Verify your `settings.json` configuration
+2. Check connection with: `gemini mcp list`
+3. Ensure the `httpUrl` field is set correctly
+4. Verify your API key has proper permissions
 
 ### Debug Mode
 
