@@ -124,10 +124,11 @@ If you have ChatGPT Pro, Business, Enterprise, or Edu access, you can add MeshAI
 
 3. **Configure MeshAI MCP Server**:
    - **Name**: MeshAI Agent Platform
-   - **URL**: `https://mcp.meshai.dev/v1/mcp`
-   - **Transport**: HTTP
-   - **Authentication**: Bearer Token
-   - **Token**: `YOUR_API_KEY`
+   - **Description**: Connect to MeshAI's multi-agent orchestration platform
+   - **MCP Server URL**: `https://mcp.meshai.dev/v1/mcp`
+   - **Authentication**: No Authentication
+
+**Note**: ChatGPT's current custom connector interface doesn't support custom headers for API key authentication. This means MeshAI integration through ChatGPT custom connectors may be limited until OpenAI adds header support or we implement OAuth authentication.
 
 4. **Enable the Connector**:
    - Save the configuration
