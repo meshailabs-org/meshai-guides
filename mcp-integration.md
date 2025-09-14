@@ -13,12 +13,15 @@ The Model Context Protocol (MCP) is an open standard that enables AI models to s
 
 ## MeshAI MCP Server
 
-The MeshAI MCP server (`mcp.meshai.dev`) provides a bridge between AI assistants and your MeshAI agents, allowing you to:
+The MeshAI MCP server (`https://mcp.meshai.dev/v1/mcp`) provides a Model Context Protocol interface that enables AI assistants like Claude to interact with your MeshAI infrastructure. This integration allows you to:
 
 - **Execute Agent Tasks**: Run any registered MeshAI agent directly from your AI conversation
-- **Orchestrate Workflows**: Trigger complex multi-agent workflows through simple commands
-- **Access Real-time Data**: Query agent status, execution history, and performance metrics
-- **Manage Resources**: Create, update, and monitor agents across different frameworks
+- **Orchestrate Workflows**: Trigger complex multi-agent workflows through simple natural language commands
+- **Monitor Operations**: Check task status, view results, and track system performance
+- **Manage Resources**: List agents, query capabilities, and control task execution
+- **Batch Processing**: Execute multiple tasks in parallel for improved efficiency
+
+The MCP server acts as a secure gateway to your MeshAI deployment, requiring API key authentication to ensure only authorized access to your agents and workflows.
 
 ## Getting Started
 
@@ -55,9 +58,21 @@ curl -X POST https://mcp.meshai.dev/api/v1/execute \
   }'
 ```
 
-### For Claude Desktop (Coming Soon)
+### For Claude Desktop
 
-MCP integration for Claude Desktop is currently in development. Once available, you'll be able to configure it to connect directly to our hosted service at `mcp.meshai.dev`.
+You can now connect Claude Desktop to the MeshAI MCP server using the following command:
+
+```bash
+claude mcp add meshai-mcp https://mcp.meshai.dev/v1/mcp -t http -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+Replace `YOUR_API_KEY` with your actual API key from the MeshAI dashboard.
+
+Once connected, Claude will have access to all MeshAI tools and can help you:
+- Execute tasks across your agent network
+- Query and manage agents
+- Create and monitor workflows
+- Check system status and metrics
 
 ### Authentication
 
@@ -68,7 +83,41 @@ All requests to the MCP server require authentication using your MeshAI API key:
 - **API Endpoint**: `https://api.meshai.dev`
 - **Runtime Endpoint**: `https://runtime.meshai.dev`
 
-## Usage Examples
+## Usage Examples with Claude Desktop
+
+Once you've connected Claude Desktop to MeshAI MCP, you can use natural language to interact with your agents:
+
+### Example Conversations
+
+**Execute a task:**
+```
+You: "Use MeshAI to analyze the sentiment of our latest customer reviews"
+Claude: I'll execute that task using MeshAI's sentiment analysis agents...
+[Uses mesh_execute tool]
+```
+
+**Check agent status:**
+```
+You: "Show me all active MeshAI agents with data analysis capabilities"
+Claude: Let me list the agents with those specifications...
+[Uses list_agents tool with filters]
+```
+
+**Monitor tasks:**
+```
+You: "What tasks are currently running in MeshAI?"
+Claude: I'll check the active tasks for you...
+[Uses list_active_tasks tool]
+```
+
+**Run workflows:**
+```
+You: "Execute the customer feedback workflow in MeshAI"
+Claude: I'll run that workflow for you...
+[Uses execute_workflow tool]
+```
+
+## Direct API Usage Examples
 
 ### Basic Agent Execution
 
@@ -102,48 +151,103 @@ Check the status of your agents and executions:
 
 ## Available MCP Tools
 
-The MeshAI MCP server exposes the following tools:
+The MeshAI MCP server exposes the following tools through the Model Context Protocol:
 
-### `mesh_execute`
+### Task Execution
+
+#### `mesh_execute`
 Execute a task using MeshAI's multi-agent orchestration.
 
 **Parameters:**
 - `task` (required): Task description
 - `capabilities` (optional): Array of required capabilities
-- `framework` (optional): Preferred framework (langchain, crewai, autogen)
-- `timeout` (optional): Execution timeout in seconds
 
 **Example:**
-```javascript
+```json
 {
   "task": "Analyze customer feedback and generate insights report",
-  "capabilities": ["sentiment-analysis", "report-generation"],
-  "framework": "langchain",
-  "timeout": 300
+  "capabilities": ["sentiment-analysis", "report-generation"]
 }
 ```
 
-### `mesh_list_agents`
-List all available agents in your MeshAI workspace.
+#### `batch_execute`
+Execute multiple tasks in parallel for improved efficiency.
+
+**Parameters:**
+- `tasks` (required): Array of tasks to execute
+  - Each task includes: `task` (string) and optional `capabilities` (array)
+
+### Agent Management
+
+#### `list_agents`
+List available agents in the MeshAI system.
 
 **Parameters:**
 - `status` (optional): Filter by status (active, inactive, all)
-- `framework` (optional): Filter by framework
+- `framework` (optional): Filter by framework (langchain, crewai, autogen)
+- `capabilities` (optional): Filter by capabilities array
 
-### `mesh_get_agent`
+#### `get_agent_details`
 Get detailed information about a specific agent.
 
 **Parameters:**
 - `agent_id` (required): The agent's unique identifier
 
-### `mesh_create_workflow`
-Create a new multi-agent workflow.
+### Workflow Management
+
+#### `list_workflows`
+List available workflows in the MeshAI system.
 
 **Parameters:**
-- `name` (required): Workflow name
-- `description` (required): Workflow description
-- `agents` (required): Array of agent IDs
-- `steps` (required): Workflow steps configuration
+- `category` (optional): Filter by workflow category
+- `tags` (optional): Filter by tags array
+
+#### `execute_workflow`
+Execute a pre-defined workflow.
+
+**Parameters:**
+- `workflow_id` (required): Workflow ID
+- `parameters` (optional): Workflow parameters object
+
+### Task Monitoring
+
+#### `get_task_status`
+Check the status of a submitted task.
+
+**Parameters:**
+- `task_id` (required): Task ID
+
+#### `get_task_result`
+Retrieve the result of a completed task.
+
+**Parameters:**
+- `task_id` (required): Task ID
+
+#### `cancel_task`
+Cancel a running task.
+
+**Parameters:**
+- `task_id` (required): Task ID
+
+#### `list_active_tasks`
+List currently running tasks.
+
+**Parameters:**
+- `limit` (optional): Maximum number of tasks to return (default: 10)
+
+### System Information
+
+#### `get_system_stats`
+Get system performance metrics and statistics.
+
+**Parameters:**
+- `include_agents` (optional): Include agent statistics (default: true)
+- `include_tasks` (optional): Include task statistics (default: true)
+
+#### `list_capabilities`
+List all available capabilities in the system.
+
+**Parameters:** None
 
 ## Advanced Features
 
@@ -222,23 +326,50 @@ The MCP server implements rate limiting to prevent abuse:
 
 ### Common Issues
 
-#### Connection Failed
+#### Claude Desktop Connection Failed
 ```
 Error: Failed to connect to MeshAI MCP server
 ```
-**Solution**: Verify your API key and network connectivity
+**Solution**: 
+1. Verify your API key is correct
+2. Ensure you're using the correct command format
+3. Check that your API key has the necessary permissions
+
+#### Authentication Error
+```
+Error: 401 Unauthorized
+```
+**Solution**: 
+1. Create a new API key in the MeshAI dashboard
+2. Make sure to include the "Bearer" prefix in the Authorization header
+3. Check that your API key hasn't expired
 
 #### Agent Not Found
 ```
 Error: No suitable agent found for task
 ```
-**Solution**: Ensure agents are registered and active in your MeshAI workspace
+**Solution**: 
+1. Ensure agents are registered and active in your MeshAI workspace
+2. Check that agents have the required capabilities
+3. Verify agents are not at capacity
 
 #### Timeout Errors
 ```
 Error: Task execution timeout
 ```
-**Solution**: Increase timeout parameter or optimize agent performance
+**Solution**: 
+1. Increase timeout parameter in your task request
+2. Check agent performance and availability
+3. Consider breaking large tasks into smaller ones
+
+#### MCP Tools Not Available in Claude
+```
+Error: MCP tools not showing in Claude Desktop
+```
+**Solution**:
+1. Restart Claude Desktop after adding the MCP server
+2. Check the connection status with: `claude mcp list`
+3. Verify the server URL is correct: `https://mcp.meshai.dev/v1/mcp`
 
 ### Debug Mode
 
