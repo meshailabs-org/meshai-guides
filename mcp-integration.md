@@ -29,7 +29,7 @@ The MCP server acts as a secure gateway to your MeshAI deployment, requiring API
 
 - MeshAI account with API access
 - API key from the MeshAI dashboard
-- Claude Desktop app (for Claude integration)
+- Claude Code (for Claude integration)
 
 ### MeshAI MCP Server Access
 
@@ -58,9 +58,9 @@ curl -X POST https://mcp.meshai.dev/api/v1/execute \
   }'
 ```
 
-### For Claude Desktop
+### For Claude Code
 
-You can now connect Claude Desktop to the MeshAI MCP server using the following command:
+You can now connect Claude Code to the MeshAI MCP server using the following command:
 
 ```bash
 claude mcp add meshai-mcp https://mcp.meshai.dev/v1/mcp -t http -H "Authorization: Bearer YOUR_API_KEY"
@@ -74,6 +74,16 @@ Once connected, Claude will have access to all MeshAI tools and can help you:
 - Create and monitor workflows
 - Check system status and metrics
 
+### Transport Method
+
+**Current Implementation**: The MeshAI MCP server currently uses HTTP transport (`-t http`) for stateless request-response communication.
+
+**Coming Soon**: SSE (Server-Sent Events) transport for real-time, bidirectional communication as described in [Anthropic's remote MCP server documentation](https://support.anthropic.com/en/articles/11503834-building-custom-connectors-via-remote-mcp-servers). This will enable:
+- Persistent connections for real-time updates
+- Streaming responses for long-running tasks
+- Bidirectional event-driven communication
+- Reduced latency for interactive workflows
+
 ### Authentication
 
 All requests to the MCP server require authentication using your MeshAI API key:
@@ -83,9 +93,9 @@ All requests to the MCP server require authentication using your MeshAI API key:
 - **API Endpoint**: `https://api.meshai.dev`
 - **Runtime Endpoint**: `https://runtime.meshai.dev`
 
-## Usage Examples with Claude Desktop
+## Usage Examples with Claude Code
 
-Once you've connected Claude Desktop to MeshAI MCP, you can use natural language to interact with your agents:
+Once you've connected Claude Code to MeshAI MCP, you can use natural language to interact with your agents:
 
 ### Example Conversations
 
@@ -326,7 +336,7 @@ The MCP server implements rate limiting to prevent abuse:
 
 ### Common Issues
 
-#### Claude Desktop Connection Failed
+#### Claude Code Connection Failed
 ```
 Error: Failed to connect to MeshAI MCP server
 ```
@@ -364,10 +374,10 @@ Error: Task execution timeout
 
 #### MCP Tools Not Available in Claude
 ```
-Error: MCP tools not showing in Claude Desktop
+Error: MCP tools not showing in Claude Code
 ```
 **Solution**:
-1. Restart Claude Desktop after adding the MCP server
+1. Restart Claude Code after adding the MCP server
 2. Check the connection status with: `claude mcp list`
 3. Verify the server URL is correct: `https://mcp.meshai.dev/v1/mcp`
 
@@ -488,10 +498,12 @@ console.log(result);
 - Claude Desktop integration
 
 ### Version 1.1.0 (Coming Soon)
-- Streaming response support
-- Enhanced context preservation
+- SSE (Server-Sent Events) transport support for real-time communication
+- Streaming response support for long-running tasks
+- Enhanced context preservation across sessions
 - Custom agent registration via MCP
 - Performance improvements
+- Full compatibility with Anthropic's remote MCP server specification
 
 ---
 
