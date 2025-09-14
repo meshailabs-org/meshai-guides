@@ -13,7 +13,7 @@ The Model Context Protocol (MCP) is an open standard that enables AI models to s
 
 ## MeshAI MCP Server
 
-The MeshAI MCP server (`https://mcp.meshai.dev/v1/mcp`) provides a Model Context Protocol interface that enables AI assistants like Claude Code and Google Gemini CLI to interact with your MeshAI infrastructure. This integration allows you to:
+The MeshAI MCP server (`https://mcp.meshai.dev/v1/mcp`) provides a Model Context Protocol interface that enables AI assistants like Claude Code, Google Gemini CLI, and OpenAI's ChatGPT to interact with your MeshAI infrastructure. This integration allows you to:
 
 - **Execute Agent Tasks**: Run any registered MeshAI agent directly from your AI conversation
 - **Orchestrate Workflows**: Trigger complex multi-agent workflows through simple natural language commands
@@ -29,7 +29,7 @@ The MCP server acts as a secure gateway to your MeshAI deployment, requiring API
 
 - MeshAI account with API access
 - API key from the MeshAI dashboard
-- Claude Code or Google Gemini CLI (for AI assistant integration)
+- Compatible AI assistant (Claude Code, Google Gemini CLI, or OpenAI ChatGPT)
 
 ### MeshAI MCP Server Access
 
@@ -102,8 +102,83 @@ Edit your `settings.json` file (located in your project or user config directory
 
 **Note**: Gemini CLI currently supports HTTP transport. SSE transport support for real-time updates is coming soon.
 
+### For OpenAI ChatGPT
+
+OpenAI fully adopted MCP in 2025 and supports it across their platform including ChatGPT desktop app, Agents SDK, and Responses API.
+
+#### ChatGPT Pro/Business/Enterprise Custom Connectors
+
+If you have ChatGPT Pro, Business, Enterprise, or Edu access, you can add MeshAI as a custom connector:
+
+1. **Access Custom Connectors**:
+   - Go to ChatGPT settings
+   - Navigate to "Connectors" or "Custom Connectors"
+   - Click "Add Custom Connector"
+
+2. **Configure MeshAI MCP Server**:
+   - **Name**: MeshAI Agent Platform
+   - **URL**: `https://mcp.meshai.dev/v1/mcp`
+   - **Transport**: HTTP
+   - **Authentication**: Bearer Token
+   - **Token**: `YOUR_API_KEY`
+
+3. **Enable the Connector**:
+   - Save the configuration
+   - Enable the MeshAI connector in your ChatGPT session
+   - You can now use natural language to interact with your agents
+
+#### OpenAI Agents SDK (Python)
+
+For developers using the OpenAI Agents SDK:
+
+```python
+from openai_agents import Agent
+from openai_agents.mcp import MCPServer
+
+# Configure MeshAI MCP server
+mcp_server = MCPServer(
+    url="https://mcp.meshai.dev/v1/mcp",
+    headers={"Authorization": "Bearer YOUR_API_KEY"},
+    transport="http"
+)
+
+# Create agent with MCP tools
+agent = Agent(
+    model="gpt-4",
+    mcp_servers=[mcp_server]
+)
+
+# Execute tasks through MeshAI
+response = agent.run(
+    "Use MeshAI to analyze customer sentiment from the latest reviews"
+)
+```
+
+#### OpenAI Responses API
+
+For API integrations using the Responses API:
+
+```python
+import openai
+
+client = openai.OpenAI()
+
+response = client.responses.create(
+    model="gpt-4",
+    messages=[
+        {"role": "user", "content": "Analyze market trends using MeshAI"}
+    ],
+    mcp_servers=[
+        {
+            "server_url": "https://mcp.meshai.dev/v1/mcp",
+            "headers": {"Authorization": "Bearer YOUR_API_KEY"}
+        }
+    ]
+)
+```
+
 ### Features Available
-Once connected, both Claude Code and Gemini CLI will have access to all MeshAI tools:
+Once connected, Claude Code, Gemini CLI, and OpenAI ChatGPT will have access to all MeshAI tools:
 - Execute tasks across your agent network
 - Query and manage agents
 - Create and monitor workflows
@@ -179,6 +254,38 @@ gemini "Execute these three tasks in parallel using MeshAI:
 2. Generate weekly report
 3. Update dashboard metrics"
 # Uses batch_execute tool
+```
+
+### With OpenAI ChatGPT
+
+After configuring MeshAI as a custom connector, you can interact with your agents using natural language:
+
+**Execute a task:**
+```
+You: "Using MeshAI, analyze the sentiment of our customer reviews from this quarter"
+ChatGPT: I'll use MeshAI's sentiment analysis capabilities to process your customer reviews...
+[Uses mesh_execute tool via MCP connector]
+```
+
+**List agents:**
+```
+You: "Show me all available MeshAI agents that can handle code generation tasks"
+ChatGPT: Let me query your MeshAI agents with code generation capabilities...
+[Uses list_agents tool with capability filter]
+```
+
+**Monitor workflows:**
+```
+You: "Check the status of my MeshAI data processing workflow"
+ChatGPT: I'll check your workflow status using MeshAI...
+[Uses get_task_status and list_active_tasks tools]
+```
+
+**Batch operations:**
+```
+You: "Use MeshAI to run these tasks in parallel: sentiment analysis, report generation, and data visualization"
+ChatGPT: I'll execute these three tasks simultaneously using MeshAI's batch processing...
+[Uses batch_execute tool]
 ```
 
 ### Common Use Cases
@@ -410,7 +517,7 @@ The MCP server implements rate limiting to prevent abuse:
 
 ### Common Issues
 
-#### Claude Code / Gemini CLI Connection Failed
+#### Claude Code / Gemini CLI / ChatGPT Connection Failed
 ```
 Error: Failed to connect to MeshAI MCP server
 ```
@@ -448,7 +555,7 @@ Error: Task execution timeout
 
 #### MCP Tools Not Available
 ```
-Error: MCP tools not showing in Claude Code or Gemini CLI
+Error: MCP tools not showing in Claude Code, Gemini CLI, or ChatGPT
 ```
 **Solution for Claude Code**:
 1. Restart Claude Code after adding the MCP server
@@ -460,6 +567,13 @@ Error: MCP tools not showing in Claude Code or Gemini CLI
 2. Check connection with: `gemini mcp list`
 3. Ensure the `httpUrl` field is set correctly
 4. Verify your API key has proper permissions
+
+**Solution for OpenAI ChatGPT**:
+1. Ensure you have ChatGPT Pro, Business, Enterprise, or Edu access
+2. Verify the custom connector is properly configured with the correct URL
+3. Check that the Bearer token is set correctly in the connector settings
+4. Try disabling and re-enabling the MeshAI connector
+5. For Agents SDK: Verify the MCPServer configuration and import statements
 
 ### Debug Mode
 
