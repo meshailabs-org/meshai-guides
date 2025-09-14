@@ -4,12 +4,23 @@
 
 ## 🚀 Quick Start (5 minutes)
 
+### Prerequisites
+
+1. **Create a MeshAI Account**
+   - Visit https://app.meshai.dev
+   - Sign up for an account or contact support@meshai.dev for access
+   
+2. **Get Your API Key**
+   - Login to the dashboard
+   - Navigate to the "API Keys" tab
+   - Click "+ Create API Key"
+   - Copy and save your key securely
+
 ### Option 1: Web Dashboard (Easiest)
 
-1. **Access the Live Demo**
-   - Go to: https://admin-dashboard-96062037338.us-central1.run.app
-   - Login: `demo@meshai.dev`
-   - Password: `mk_public_demo_2024`
+1. **Access the Admin Dashboard**
+   - Go to: https://app.meshai.dev
+   - Login with your MeshAI account
 
 2. **Submit Your First Task**
    - Click the **"Tasks"** tab
@@ -29,8 +40,9 @@
 ### Option 2: API Call (For Developers)
 
 ```bash
-# Submit a task via API
-curl -X POST "https://mesh-runtime-96062037338.us-central1.run.app/api/v1/tasks" \
+# Submit a task via API (requires API key)
+curl -X POST "https://runtime.meshai.dev/api/v1/tasks" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "task_type": "chat",
@@ -77,13 +89,22 @@ MeshAI uses different strategies to choose the best agent:
 - `performance_based` - Routes to fastest/most reliable agents
 - `load_balanced` - Distributes tasks evenly across agents
 
+## 🤖 MCP (Model Context Protocol) Integration
+
+MeshAI provides a Model Context Protocol server that allows AI assistants like Claude to interact directly with your agents:
+
+- **MCP Server**: https://mcp.meshai.dev
+- **Documentation**: [MCP Integration Guide](mcp-integration.md)
+
+Use the MCP server to execute tasks, query agents, and manage workflows directly from your AI conversations.
+
 ## 🛠 Usage Methods
 
 ### Method 1: Web Dashboard
 
 **Best for:** Non-technical users, testing, monitoring
 
-1. **Login to Dashboard**: https://admin-dashboard-96062037338.us-central1.run.app
+1. **Login to Dashboard**: https://app.meshai.dev
 2. **Navigate to Tasks Tab**
 3. **Click "+ Create Task"**
 4. **Fill Task Details:**
@@ -98,7 +119,8 @@ MeshAI uses different strategies to choose the best agent:
 
 #### Basic Task Submission
 ```bash
-POST https://mesh-runtime-96062037338.us-central1.run.app/api/v1/tasks
+POST https://runtime.meshai.dev/api/v1/tasks
+Authorization: Bearer YOUR_API_KEY
 Content-Type: application/json
 
 {
@@ -114,12 +136,14 @@ Content-Type: application/json
 
 #### Check Task Status
 ```bash
-GET https://mesh-runtime-96062037338.us-central1.run.app/api/v1/tasks
+GET https://runtime.meshai.dev/api/v1/tasks
+Authorization: Bearer YOUR_API_KEY
 ```
 
 #### Get All Available Agents
 ```bash
-GET https://agent-registry-96062037338.us-central1.run.app/api/v1/agents
+GET https://api.meshai.dev/api/v1/agents
+Authorization: Bearer YOUR_API_KEY
 ```
 
 ### Method 3: Python Client
@@ -131,9 +155,14 @@ import requests
 import json
 
 class MeshAIClient:
-    def __init__(self):
-        self.runtime_url = "https://mesh-runtime-96062037338.us-central1.run.app"
-        self.registry_url = "https://agent-registry-96062037338.us-central1.run.app"
+    def __init__(self, api_key):
+        self.api_key = api_key
+        self.runtime_url = "https://runtime.meshai.dev"
+        self.registry_url = "https://api.meshai.dev"
+        self.headers = {
+            "Authorization": f"Bearer {api_key}",
+            "Content-Type": "application/json"
+        }
     
     def submit_task(self, task_type, payload, capabilities=None, routing="capability_match"):
         """Submit a task to MeshAI"""
@@ -144,21 +173,31 @@ class MeshAIClient:
             "routing_strategy": routing
         }
         
-        response = requests.post(f"{self.runtime_url}/api/v1/tasks", json=task_data)
+        response = requests.post(
+            f"{self.runtime_url}/api/v1/tasks", 
+            json=task_data,
+            headers=self.headers
+        )
         return response.json()
     
     def get_tasks(self):
         """Get all tasks"""
-        response = requests.get(f"{self.runtime_url}/api/v1/tasks")
+        response = requests.get(
+            f"{self.runtime_url}/api/v1/tasks",
+            headers=self.headers
+        )
         return response.json()
     
     def get_agents(self):
         """Get all registered agents"""
-        response = requests.get(f"{self.registry_url}/api/v1/agents")
+        response = requests.get(
+            f"{self.registry_url}/api/v1/agents",
+            headers=self.headers
+        )
         return response.json()
 
 # Usage example
-client = MeshAIClient()
+client = MeshAIClient(api_key="YOUR_API_KEY")
 
 # Submit a chat task
 result = client.submit_task(
@@ -186,9 +225,14 @@ print(f"Code task: {result['task_id']}")
 
 ```javascript
 class MeshAIClient {
-    constructor() {
-        this.runtimeUrl = 'https://mesh-runtime-96062037338.us-central1.run.app';
-        this.registryUrl = 'https://agent-registry-96062037338.us-central1.run.app';
+    constructor(apiKey) {
+        this.apiKey = apiKey;
+        this.runtimeUrl = 'https://runtime.meshai.dev';
+        this.registryUrl = 'https://api.meshai.dev';
+        this.headers = {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json'
+        };
     }
     
     async submitTask(taskType, payload, capabilities = ["chat"], routing = "capability_match") {
@@ -202,9 +246,7 @@ class MeshAIClient {
         try {
             const response = await fetch(`${this.runtimeUrl}/api/v1/tasks`, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: this.headers,
                 body: JSON.stringify(taskData)
             });
             
@@ -216,13 +258,15 @@ class MeshAIClient {
     }
     
     async getTasks() {
-        const response = await fetch(`${this.runtimeUrl}/api/v1/tasks`);
+        const response = await fetch(`${this.runtimeUrl}/api/v1/tasks`, {
+            headers: this.headers
+        });
         return await response.json();
     }
 }
 
 // Usage
-const client = new MeshAIClient();
+const client = new MeshAIClient('YOUR_API_KEY');
 
 // Submit task
 const result = await client.submitTask("chat", {
@@ -237,8 +281,8 @@ console.log('Task result:', result);
 ### 1. Customer Support Automation
 
 ```python
-def handle_customer_query(user_message, context):
-    client = MeshAIClient()
+def handle_customer_query(user_message, context, api_key):
+    client = MeshAIClient(api_key)
     
     # Determine appropriate capabilities
     if "code" in user_message.lower() or "api" in user_message.lower():
@@ -271,8 +315,8 @@ response = handle_customer_query(
 ### 2. Content Creation Pipeline
 
 ```python
-def create_blog_post(topic):
-    client = MeshAIClient()
+def create_blog_post(topic, api_key):
+    client = MeshAIClient(api_key)
     
     # Step 1: Research the topic
     research = client.submit_task("research", {
@@ -312,8 +356,8 @@ def create_blog_post(topic):
 ### 3. Data Analysis Workflow
 
 ```python
-def analyze_data(dataset):
-    client = MeshAIClient()
+def analyze_data(dataset, api_key):
+    client = MeshAIClient(api_key)
     
     # Statistical analysis
     stats = client.submit_task("analysis", {
@@ -343,6 +387,8 @@ def analyze_data(dataset):
 
 ## 🔧 Adding Your Own Agents
 
+**Note:** To register agents, you need an API key from your MeshAI dashboard.
+
 ### Register an OpenAI Agent
 
 ```python
@@ -360,7 +406,11 @@ agent_data = {
 }
 
 response = requests.post(
-    "https://agent-registry-96062037338.us-central1.run.app/api/v1/agents",
+    "https://api.meshai.dev/api/v1/agents",
+    headers={
+        "Authorization": f"Bearer {YOUR_API_KEY}",
+        "Content-Type": "application/json"
+    },
     json=agent_data
 )
 ```
@@ -501,10 +551,12 @@ def submit_with_retry(client, task_data, max_retries=3):
 
 ## 📞 Support
 
-- **Live Demo**: https://admin-dashboard-96062037338.us-central1.run.app
-- **API Documentation**: Available in the "For Developers" tab of the dashboard
-- **GitHub Issues**: Report bugs or request features
-- **Email Support**: Contact us through the landing page
+- **Admin Dashboard**: https://app.meshai.dev
+- **API Documentation**: https://api.meshai.dev/docs
+- **MCP Server**: https://mcp.meshai.dev
+- **GitHub**: https://github.com/meshailabs-org
+- **Discord Community**: https://discord.gg/meshai
+- **Email Support**: support@meshai.dev
 
 ## 🎯 Key Benefits
 
