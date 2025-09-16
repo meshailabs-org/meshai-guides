@@ -1,577 +1,371 @@
 # Getting Started with MeshAI
 
-**MeshAI** is a universal AI agent orchestration platform that connects agents from 15+ frameworks and providers into one unified mesh. This guide shows you exactly how to start using MeshAI to submit tasks and orchestrate AI agents.
+Welcome to MeshAI - the universal orchestration platform for AI agents. This guide will help you connect your AI agents and start leveraging our interoperability layer.
 
-## 🚀 Quick Start (5 minutes)
+## Overview
 
-### Prerequisites
+MeshAI enables seamless communication between AI agents built on different frameworks (LangChain, CrewAI, AutoGen, etc.) through our unified orchestration platform.
 
-1. **Create a MeshAI Account**
-   - Visit https://app.meshai.dev
-   - Sign up for an account or contact support@meshai.dev for access
-   
-2. **Get Your API Key**
-   - Login to the dashboard
-   - Navigate to the "API Keys" tab
-   - Click "+ Create API Key"
-   - Copy and save your key securely
+## Quick Start Steps
 
-### Option 1: Web Dashboard (Easiest)
+### 1. Sign Up & Get API Key
 
-1. **Access the Admin Dashboard**
-   - Go to: https://app.meshai.dev
-   - Login with your MeshAI account
+1. **Create your account** at [app.meshai.dev](https://app.meshai.dev)
+2. **Generate API key** from the API Keys tab in your dashboard
+3. **Save your credentials** securely:
+   - API Key: `msk_live_...` or `msk_test_...`
+   - User Email: Your registered email
 
-2. **Submit Your First Task**
-   - Click the **"Tasks"** tab
-   - Click **"+ Create Task"** button
-   - Fill in your task details:
-     - **Task Type**: `chat`
-     - **Message**: `"Explain quantum computing in simple terms"`
-     - **Capabilities**: Select `chat` and `explanation`
-   - Click **"Submit Task"**
-   - Watch it get routed to the best available agent!
+### 2. Connect Your Agents
 
-3. **View Results**
-   - See your task status update in real-time
-   - View which agent handled your request
-   - Check the response from the AI agent
+MeshAI supports multiple integration methods. Choose the one that fits your needs:
 
-### Option 2: API Call (For Developers)
+#### REST API Integration
 
-```bash
-# Submit a task via API (requires API key)
-curl -X POST "https://runtime.meshai.dev/api/v1/tasks" \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "task_type": "chat",
-    "payload": {
-      "message": "Hello MeshAI! Explain how you work."
-    },
-    "required_capabilities": ["chat"],
-    "routing_strategy": "capability_match"
-  }'
-```
-
-**Response:**
-```json
-{
-  "task_id": "task-1234567890",
-  "status": "submitted",
-  "assigned_agent": "best-available-chat-agent"
-}
-```
-
-## 📚 Core Concepts
-
-### **Tasks**
-A **task** is any request you want an AI agent to handle. Tasks include:
-- Chat conversations
-- Code generation
-- Data analysis  
-- Content creation
-- Image processing
-- Research queries
-
-### **Capabilities** 
-**Capabilities** describe what an agent can do:
-- `chat` - Conversational AI
-- `code-generation` - Writing code
-- `analysis` - Data/text analysis
-- `reasoning` - Complex reasoning tasks
-- `search` - Web search and research
-- `multimodal` - Text + image processing
-
-### **Routing Strategies**
-MeshAI uses different strategies to choose the best agent:
-- `capability_match` - Routes to agents with required capabilities
-- `performance_based` - Routes to fastest/most reliable agents
-- `load_balanced` - Distributes tasks evenly across agents
-
-## 🤖 MCP (Model Context Protocol) Integration
-
-MeshAI provides a Model Context Protocol server that allows AI assistants like Claude to interact directly with your agents:
-
-- **MCP Server**: https://mcp.meshai.dev
-- **Documentation**: [MCP Integration Guide](mcp-integration.md)
-
-Use the MCP server to execute tasks, query agents, and manage workflows directly from your AI conversations.
-
-## 🛠 Usage Methods
-
-### Method 1: Web Dashboard
-
-**Best for:** Non-technical users, testing, monitoring
-
-1. **Login to Dashboard**: https://app.meshai.dev
-2. **Navigate to Tasks Tab**
-3. **Click "+ Create Task"**
-4. **Fill Task Details:**
-   - Task Type (chat, analysis, code_generation, etc.)
-   - Payload (your actual request/data)
-   - Required Capabilities
-5. **Submit and Monitor**
-
-### Method 2: REST API
-
-**Best for:** Applications, automation, integrations
-
-#### Basic Task Submission
-```bash
-POST https://runtime.meshai.dev/api/v1/tasks
-Authorization: Bearer YOUR_API_KEY
-Content-Type: application/json
-
-{
-  "task_type": "analysis",
-  "payload": {
-    "text": "The stock market has been volatile lately",
-    "analysis_type": "sentiment"
-  },
-  "required_capabilities": ["analysis", "reasoning"],
-  "routing_strategy": "capability_match"
-}
-```
-
-#### Check Task Status
-```bash
-GET https://runtime.meshai.dev/api/v1/tasks
-Authorization: Bearer YOUR_API_KEY
-```
-
-#### Get All Available Agents
-```bash
-GET https://api.meshai.dev/api/v1/agents
-Authorization: Bearer YOUR_API_KEY
-```
-
-### Method 3: Python Client
-
-**Best for:** Python applications, data science, automation
+Register your agent using our REST API:
 
 ```python
 import requests
-import json
 
-class MeshAIClient:
-    def __init__(self, api_key):
-        self.api_key = api_key
-        self.runtime_url = "https://runtime.meshai.dev"
-        self.registry_url = "https://api.meshai.dev"
-        self.headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-    
-    def submit_task(self, task_type, payload, capabilities=None, routing="capability_match"):
-        """Submit a task to MeshAI"""
-        task_data = {
-            "task_type": task_type,
-            "payload": payload,
-            "required_capabilities": capabilities or ["chat"],
-            "routing_strategy": routing
-        }
-        
-        response = requests.post(
-            f"{self.runtime_url}/api/v1/tasks", 
-            json=task_data,
-            headers=self.headers
-        )
-        return response.json()
-    
-    def get_tasks(self):
-        """Get all tasks"""
-        response = requests.get(
-            f"{self.runtime_url}/api/v1/tasks",
-            headers=self.headers
-        )
-        return response.json()
-    
-    def get_agents(self):
-        """Get all registered agents"""
-        response = requests.get(
-            f"{self.registry_url}/api/v1/agents",
-            headers=self.headers
-        )
-        return response.json()
-
-# Usage example
-client = MeshAIClient(api_key="YOUR_API_KEY")
-
-# Submit a chat task
-result = client.submit_task(
-    task_type="chat",
-    payload={"message": "Explain machine learning in simple terms"},
-    capabilities=["chat", "explanation"]
-)
-print(f"Task submitted: {result['task_id']}")
-
-# Submit a code generation task
-result = client.submit_task(
-    task_type="code_generation", 
-    payload={
-        "requirements": "Create a Python function to calculate Fibonacci numbers",
-        "language": "python"
-    },
-    capabilities=["code-generation", "python"]
-)
-print(f"Code task: {result['task_id']}")
-```
-
-### Method 4: JavaScript/Web Apps
-
-**Best for:** Web applications, frontend integrations
-
-```javascript
-class MeshAIClient {
-    constructor(apiKey) {
-        this.apiKey = apiKey;
-        this.runtimeUrl = 'https://runtime.meshai.dev';
-        this.registryUrl = 'https://api.meshai.dev';
-        this.headers = {
-            'Authorization': `Bearer ${apiKey}`,
-            'Content-Type': 'application/json'
-        };
-    }
-    
-    async submitTask(taskType, payload, capabilities = ["chat"], routing = "capability_match") {
-        const taskData = {
-            task_type: taskType,
-            payload: payload,
-            required_capabilities: capabilities,
-            routing_strategy: routing
-        };
-        
-        try {
-            const response = await fetch(`${this.runtimeUrl}/api/v1/tasks`, {
-                method: 'POST',
-                headers: this.headers,
-                body: JSON.stringify(taskData)
-            });
-            
-            return await response.json();
-        } catch (error) {
-            console.error('Error submitting task:', error);
-            throw error;
-        }
-    }
-    
-    async getTasks() {
-        const response = await fetch(`${this.runtimeUrl}/api/v1/tasks`, {
-            headers: this.headers
-        });
-        return await response.json();
-    }
-}
-
-// Usage
-const client = new MeshAIClient('YOUR_API_KEY');
-
-// Submit task
-const result = await client.submitTask("chat", {
-    message: "What are the benefits of AI orchestration?"
-}, ["chat", "explanation"]);
-
-console.log('Task result:', result);
-```
-
-## 🎯 Common Use Cases
-
-### 1. Customer Support Automation
-
-```python
-def handle_customer_query(user_message, context, api_key):
-    client = MeshAIClient(api_key)
-    
-    # Determine appropriate capabilities
-    if "code" in user_message.lower() or "api" in user_message.lower():
-        capabilities = ["code-generation", "debugging", "technical-support"]
-    elif "billing" in user_message.lower():
-        capabilities = ["data-analysis", "calculation", "billing"]
-    else:
-        capabilities = ["chat", "customer-service"]
-    
-    # Submit to MeshAI
-    result = client.submit_task(
-        task_type="customer_support",
-        payload={
-            "message": user_message,
-            "context": context,
-            "priority": "normal"
-        },
-        capabilities=capabilities
-    )
-    
-    return result
-
-# Usage
-response = handle_customer_query(
-    "My API is returning 401 errors", 
-    {"user_id": "12345", "plan": "enterprise"}
-)
-```
-
-### 2. Content Creation Pipeline
-
-```python
-def create_blog_post(topic, api_key):
-    client = MeshAIClient(api_key)
-    
-    # Step 1: Research the topic
-    research = client.submit_task("research", {
-        "topic": topic,
-        "depth": "comprehensive",
-        "sources": ["web", "academic"]
-    }, ["search", "research"])
-    
-    # Step 2: Create outline
-    outline = client.submit_task("planning", {
-        "research_data": research,
-        "content_type": "blog_post",
-        "audience": "developers"
-    }, ["planning", "writing"])
-    
-    # Step 3: Write content
-    content = client.submit_task("writing", {
-        "outline": outline,
-        "tone": "professional",
-        "length": "1500_words"
-    }, ["writing", "creativity"])
-    
-    # Step 4: Generate code examples
-    code = client.submit_task("code_generation", {
-        "context": content,
-        "language": "python",
-        "examples": 3
-    }, ["code-generation", "documentation"])
-    
-    return {
-        "content": content,
-        "code": code,
-        "outline": outline
-    }
-```
-
-### 3. Data Analysis Workflow
-
-```python
-def analyze_data(dataset, api_key):
-    client = MeshAIClient(api_key)
-    
-    # Statistical analysis
-    stats = client.submit_task("analysis", {
-        "data": dataset,
-        "analysis_types": ["descriptive", "correlation", "trend"]
-    }, ["analysis", "statistics"])
-    
-    # Generate visualizations
-    charts = client.submit_task("visualization", {
-        "data": stats,
-        "chart_types": ["line", "bar", "scatter"],
-        "library": "matplotlib"
-    }, ["code-generation", "visualization"])
-    
-    # Business insights
-    insights = client.submit_task("business_analysis", {
-        "analysis": stats,
-        "context": "quarterly_review"
-    }, ["reasoning", "business-analysis"])
-    
-    return {
-        "statistics": stats,
-        "visualizations": charts,
-        "insights": insights
-    }
-```
-
-## 🔧 Adding Your Own Agents
-
-**Note:** To register agents, you need an API key from your MeshAI dashboard.
-
-### Register an OpenAI Agent
-
-```python
-agent_data = {
-    "id": "my-chatgpt-agent",
-    "name": "My ChatGPT Assistant",
-    "framework": "openai-assistants",
-    "provider": "OpenAI", 
-    "capabilities": ["chat", "code-generation", "function-calling"],
-    "endpoint": "https://api.openai.com/v1/chat/completions",
-    "metadata": {
-        "model": "gpt-4",
-        "api_key": "your-api-key-here"
-    }
-}
-
+# Register an agent
 response = requests.post(
     "https://api.meshai.dev/api/v1/agents",
     headers={
-        "Authorization": f"Bearer {YOUR_API_KEY}",
+        "Authorization": "Bearer YOUR_API_KEY",
         "Content-Type": "application/json"
     },
-    json=agent_data
+    json={
+        "name": "my-langchain-agent",
+        "framework": "langchain",
+        "endpoint": "https://your-agent-endpoint.com",
+        "capabilities": ["text_generation", "reasoning"],
+        "description": "Expert Q&A and reasoning agent"
+    }
+)
+
+agent_id = response.json()["id"]
+print(f"Agent registered: {agent_id}")
+```
+
+#### MCP (Model Context Protocol) Integration
+
+Use MCP for seamless tool-based integration:
+
+```python
+# MCP Configuration
+{
+    "mcpServers": {
+        "meshai": {
+            "command": "npx",
+            "args": ["-y", "@meshai/mcp-server"],
+            "env": {
+                "MESHAI_API_KEY": "YOUR_API_KEY"
+            }
+        }
+    }
+}
+```
+
+Execute tasks through MCP:
+
+```json
+{
+    "jsonrpc": "2.0",
+    "method": "tools/call",
+    "params": {
+        "name": "mesh_execute",
+        "arguments": {
+            "task": "Analyze this quarterly report and summarize key findings",
+            "capabilities": ["text_generation", "data_analysis"]
+        }
+    }
+}
+```
+
+#### LangChain Integration
+
+```python
+from meshai import MeshAIClient
+
+# Initialize client
+client = MeshAIClient(api_key="YOUR_API_KEY")
+
+# Register LangChain agent
+agent = client.register_agent(
+    name="langchain-qa-agent",
+    framework="langchain",
+    endpoint="https://your-agent.com/execute",
+    capabilities=["text_generation", "question_answering"],
+    config={
+        "model": "gpt-4",
+        "temperature": 0.7
+    }
+)
+
+# Submit task
+result = await client.execute_task(
+    task="What are the key trends in AI for 2024?",
+    capabilities=["text_generation"],
+    routing_strategy="performance"
 )
 ```
 
-### Register a Claude Agent
+#### CrewAI Integration
 
 ```python
-claude_agent = {
-    "id": "my-claude-agent",
-    "name": "Claude Reasoning Assistant", 
-    "framework": "anthropic-claude",
-    "provider": "Anthropic",
-    "capabilities": ["reasoning", "analysis", "writing", "safety"],
-    "endpoint": "https://api.anthropic.com/v1/messages",
-    "metadata": {
-        "model": "claude-3-sonnet-20240229",
-        "api_key": "your-anthropic-key"
+from meshai import MeshAIClient
+
+# Initialize client
+client = MeshAIClient(api_key="YOUR_API_KEY")
+
+# Register CrewAI crew as agent
+crew_agent = client.register_agent(
+    name="research-crew",
+    framework="crewai",
+    endpoint="https://your-crew.com/execute",
+    capabilities=["research", "text_generation", "data_analysis"],
+    config={
+        "crew_size": 3,
+        "roles": ["researcher", "analyst", "writer"]
     }
+)
+
+# Execute crew task
+result = await client.execute_task(
+    task="Research and create a comprehensive report on market trends",
+    capabilities=["research", "text_generation"]
+)
+```
+
+### 3. Configure Capabilities
+
+MeshAI uses standardized capabilities for intelligent routing:
+
+| Capability | Description | Auto-Detection Keywords |
+|------------|-------------|------------------------|
+| `text_generation` | Q&A, writing, explanations | "what is", "explain", "write", "tell me" |
+| `code_generation` | Programming, debugging | "implement", "debug", "write code", "function" |
+| `data_analysis` | Statistics, calculations | "analyze", "calculate", "metrics", "chart" |
+| `reasoning` | Logic, problem-solving | "solve", "deduce", "reason", "prove" |
+| `image_generation` | Visual content | "draw", "image", "diagram", "visualize" |
+
+**Pro tip**: Let auto-detection handle capability matching - just describe your task naturally!
+
+### 4. Submit Tasks
+
+#### Using the SDK
+
+```python
+# Simple task submission
+result = await client.execute_task(
+    task="Explain quantum computing in simple terms"
+    # Capabilities auto-detected as ["text_generation"]
+)
+
+# Complex task with explicit capabilities
+result = await client.execute_task(
+    task="Analyze this dataset and create a Python visualization",
+    capabilities=["data_analysis", "code_generation"],
+    context={"dataset_url": "https://..."}
+)
+```
+
+#### Using REST API
+
+```bash
+curl -X POST https://api.meshai.dev/api/v1/tasks \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "task": "Generate a marketing strategy",
+    "capabilities": ["text_generation"],
+    "routing_strategy": "performance"
+  }'
+```
+
+### 5. Monitor & Manage
+
+Access your dashboard at [app.meshai.dev](https://app.meshai.dev) to:
+
+- **Overview Tab**: View system metrics and recent activity
+- **Agents Tab**: Manage registered agents and their status
+- **Tasks Tab**: Track task execution and results
+- **Agent Monitoring** ([app.meshai.dev/agents](https://app.meshai.dev/agents)):
+  - Real-time agent health monitoring
+  - Performance metrics and charts
+  - Circuit breaker status
+  - Task history and success rates
+- **API Keys Tab**: Manage authentication credentials
+- **Analytics Tab**: Deep dive into usage patterns and costs
+
+## Authentication
+
+### API Key Types
+
+- **Test Keys** (`msk_test_...`): For development and testing
+- **Live Keys** (`msk_live_...`): For production use
+
+### Using API Keys
+
+Always include your API key in request headers:
+
+```python
+headers = {
+    "Authorization": "Bearer YOUR_API_KEY",
+    "Content-Type": "application/json"
 }
 ```
 
-### Register a Custom Agent
+### Security Best Practices
 
+1. Never expose API keys in client-side code
+2. Use environment variables for key storage
+3. Rotate keys regularly from the dashboard
+4. Use test keys for development
+
+## API Endpoints
+
+| Service | Endpoint | Description |
+|---------|----------|-------------|
+| API Gateway | `https://api.meshai.dev` | Main API endpoint |
+| Admin Dashboard | `https://app.meshai.dev` | Web dashboard |
+| Agent Registry | `https://registry.meshai.dev` | Agent discovery |
+| Runtime | `https://runtime.meshai.dev` | Task execution |
+
+## Routing Strategies
+
+Choose how MeshAI routes tasks to agents:
+
+- **`performance`**: Route to fastest/most reliable agent
+- **`capability_match`**: Best capability alignment (default)
+- **`cost_optimized`**: Minimize execution costs
+- **`round_robin`**: Distribute load evenly
+- **`sticky_session`**: Maintain context with same agent
+
+## Troubleshooting
+
+### Common Issues and Solutions
+
+#### "No suitable agents found"
+**Cause**: No agents match the required capabilities
+**Solution**:
+- Check agent capabilities in dashboard
+- Verify agents are active/online
+- Use broader capabilities (e.g., `text_generation` instead of specific skills)
+- Enable auto-import in settings
+
+#### Authentication Failures
+**Cause**: Invalid or expired API key
+**Solution**:
+- Verify API key format (`msk_test_...` or `msk_live_...`)
+- Check key hasn't been revoked in dashboard
+- Ensure `Bearer` prefix in Authorization header
+- Generate new key if needed
+
+#### Capability Mismatches
+**Cause**: Task requirements don't match agent capabilities
+**Solution**:
+- Review auto-detected capabilities in task details
+- Explicitly specify capabilities if auto-detection is incorrect
+- Check agent capabilities match task needs
+- Consider using multiple capabilities for complex tasks
+
+#### Task Timeouts
+**Cause**: Agent taking too long to respond
+**Solution**:
+- Check agent endpoint is accessible
+- Review agent logs for errors
+- Increase timeout in task configuration
+- Consider using performance-based routing
+
+#### Context Not Preserved
+**Cause**: Stateless agent handling
+**Solution**:
+- Use `sticky_session` routing strategy
+- Include context in task payload
+- Implement context storage in your agent
+
+## Advanced Features
+
+### Context Preservation
 ```python
-custom_agent = {
-    "id": "my-custom-agent",
-    "name": "My Specialized Agent",
-    "framework": "custom",
-    "provider": "My Company",
-    "capabilities": ["domain-specific", "custom-analysis"],
-    "endpoint": "https://my-api.com/agent",
-    "metadata": {
-        "version": "1.0.0",
-        "specialization": "financial_analysis"
-    }
-}
+# Maintain conversation context across tasks
+result = await client.execute_task(
+    task="Continue our previous discussion about AI",
+    context={"conversation_id": "conv-123"},
+    routing_strategy="sticky_session"
+)
 ```
 
-## 📊 Monitoring and Management
-
-### Check Task Status
-
+### Batch Processing
 ```python
-# Get all tasks
-tasks = client.get_tasks()
-print(f"Total tasks: {len(tasks)}")
+# Submit multiple tasks efficiently
+tasks = [
+    {"task": "Summarize article 1", "capabilities": ["text_generation"]},
+    {"task": "Analyze data set", "capabilities": ["data_analysis"]},
+    {"task": "Generate code", "capabilities": ["code_generation"]}
+]
 
-# Check recent tasks
-for task in tasks[-5:]:
-    print(f"Task {task['task_id']}: {task['status']} - {task['task_type']}")
-
-# Filter by status
-active_tasks = [t for t in tasks if t['status'] in ['submitted', 'running']]
-completed_tasks = [t for t in tasks if t['status'] == 'completed']
+results = await client.execute_batch(tasks)
 ```
 
-### Monitor Agents
-
+### Webhook Notifications
 ```python
-# Get all registered agents
-agents = client.get_agents()
-print(f"Total agents: {len(agents)}")
-
-# Check agent health
-active_agents = [a for a in agents if a['status'] == 'active']
-print(f"Active agents: {len(active_agents)}")
-
-# Group by provider
-from collections import defaultdict
-providers = defaultdict(list)
-for agent in agents:
-    providers[agent['provider']].append(agent['name'])
-
-for provider, agent_names in providers.items():
-    print(f"{provider}: {len(agent_names)} agents")
+# Get notified when tasks complete
+result = await client.execute_task(
+    task="Long running analysis",
+    webhook_url="https://your-app.com/webhook",
+    async_mode=True
+)
 ```
 
-## 🌟 Best Practices
+## Example Use Cases
 
-### 1. Capability Matching
-- **Be Specific**: Use precise capabilities like `["python", "data-analysis"]` instead of just `["coding"]`
-- **Multiple Options**: List multiple capabilities to give MeshAI routing flexibility
-- **Context Matters**: Include domain-specific capabilities like `["financial-analysis", "medical-text"]`
-
-### 2. Task Structure
+### Multi-Agent Collaboration
 ```python
-# Good task structure
-task = {
-    "task_type": "analysis",  # Clear category
-    "payload": {
-        "data": "your_data_here",
-        "format": "json",        # Specify expected output format
-        "context": "financial",  # Provide domain context
-        "requirements": ["summary", "insights", "recommendations"]
-    },
-    "required_capabilities": ["financial-analysis", "reasoning", "report-generation"],
-    "routing_strategy": "performance_based"  # Choose appropriate strategy
-}
+# Research task using multiple specialized agents
+result = await client.execute_task(
+    task="Research climate change impact on agriculture and create report",
+    capabilities=["research", "data_analysis", "text_generation"],
+    routing_strategy="capability_match"
+)
 ```
 
-### 3. Error Handling
+### Code Generation Pipeline
 ```python
-def safe_submit_task(client, task_type, payload, capabilities):
-    try:
-        result = client.submit_task(task_type, payload, capabilities)
-        return result
-    except requests.exceptions.RequestException as e:
-        print(f"Network error: {e}")
-        return None
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-        return None
-
-# Usage with retry logic
-import time
-
-def submit_with_retry(client, task_data, max_retries=3):
-    for attempt in range(max_retries):
-        result = safe_submit_task(client, **task_data)
-        if result:
-            return result
-        
-        print(f"Retry {attempt + 1}/{max_retries}")
-        time.sleep(2 ** attempt)  # Exponential backoff
-    
-    return None
+# Generate, review, and optimize code
+result = await client.execute_task(
+    task="Create a Python API for user management with tests",
+    capabilities=["code_generation", "reasoning"],
+    context={"framework": "FastAPI", "include_tests": True}
+)
 ```
 
-## 🚀 Next Steps
+### Data Analysis Workflow
+```python
+# Analyze data and generate insights
+result = await client.execute_task(
+    task="Analyze sales data and identify trends",
+    capabilities=["data_analysis", "text_generation"],
+    context={"data_source": "sales_2024.csv"}
+)
+```
 
-1. **✅ Try the Web Dashboard**: Start with the visual interface
-2. **✅ Test API Calls**: Use curl or Postman to test the API
-3. **✅ Build a Simple Client**: Create a Python script using the examples
-4. **✅ Register Your Agents**: Add your existing AI services to MeshAI
-5. **✅ Create Workflows**: Chain multiple tasks together
-6. **✅ Monitor Performance**: Use the dashboard to track your agents and tasks
-7. **✅ Scale to Production**: Integrate MeshAI into your applications
+## Next Steps
 
-## 📞 Support
+1. **Explore the Dashboard**: Familiarize yourself with monitoring tools at [app.meshai.dev](https://app.meshai.dev)
+2. **Read API Documentation**: Deep dive into our [API reference](https://docs.meshai.dev/api)
+3. **Join the Community**: Connect with other developers in our [Discord](https://discord.gg/meshai)
+4. **View Examples**: Check out complete examples in our [GitHub repository](https://github.com/meshailabs/examples)
+5. **Review Capabilities Guide**: Learn about capability routing in our [MCP Capabilities Guide](./MCP_CAPABILITIES_GUIDE.md)
 
-- **Admin Dashboard**: https://app.meshai.dev
-- **API Documentation**: https://api.meshai.dev/docs
-- **MCP Server**: https://mcp.meshai.dev
-- **GitHub**: https://github.com/meshailabs-org
-- **Discord Community**: https://discord.gg/meshai
-- **Email Support**: support@meshai.dev
+## Support
 
-## 🎯 Key Benefits
+- **Documentation**: [docs.meshai.dev](https://docs.meshai.dev)
+- **Email**: support@meshai.dev
+- **Discord**: [discord.gg/meshai](https://discord.gg/meshai)
+- **Status Page**: [status.meshai.dev](https://status.meshai.dev)
 
-- **🔄 Multi-Provider**: Use ChatGPT, Claude, Gemini, and custom agents together
-- **🎯 Smart Routing**: Automatically route tasks to the best agent
-- **📊 Unified Monitoring**: See all your AI agents in one dashboard
-- **🔗 Framework Agnostic**: Works with LangChain, CrewAI, and any REST API
-- **💰 Cost Optimization**: Route simple tasks to cheaper models
-- **🔒 No Lock-in**: Switch providers without changing your code
+---
 
-Start with the web dashboard, then move to API integration as you scale! 🚀
-
-## Legacy SDK Documentation
-
-For advanced users building framework adapters, see:
-- [Technical Specification](../overview/meshai_tech_spec.md)
-- [Framework Adapters](../development/meshai_sdk_architecture.md)
-- [Security & Authentication](../development/meshai_security_auth.md)
+Ready to revolutionize your AI agent orchestration? [Start building](https://app.meshai.dev) with MeshAI today!
