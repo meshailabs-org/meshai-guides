@@ -10,41 +10,39 @@ MeshAI enables seamless communication between AI agents built on different frame
 
 ### 1. Sign Up & Get API Key
 
-1. **Create your account** at [app.meshai.dev](https://app.meshai.dev)
-2. **Generate API key** from the API Keys tab in your dashboard
-3. **Save your credentials** securely:
+1. **Sign up** at [meshai.dev](https://meshai.dev) to create your account
+2. **Login to your dashboard** at [app.meshai.dev](https://app.meshai.dev)
+3. **Generate API key** from the API Keys tab in your dashboard
+4. **Save your credentials** securely:
    - API Key: `msk_live_...` or `msk_test_...`
    - User Email: Your registered email
 
-### 2. Connect Your Agents
+### 2. Submit Tasks to MeshAI
 
-MeshAI supports multiple integration methods. Choose the one that fits your needs:
+MeshAI automatically routes your tasks to the best available agents across all frameworks. You don't need to worry about which framework to use - just describe what you need:
 
 #### REST API Integration
 
-Register your agent using our REST API:
+Submit tasks and let MeshAI handle the routing:
 
 ```python
 import requests
 
-# Register an agent
+# Submit a task - MeshAI finds the best agent for you
 response = requests.post(
-    "https://api.meshai.dev/api/v1/agents",
+    "https://api.meshai.dev/api/v1/tasks",
     headers={
         "Authorization": "Bearer YOUR_API_KEY",
         "Content-Type": "application/json"
     },
     json={
-        "name": "my-langchain-agent",
-        "framework": "langchain",
-        "endpoint": "https://your-agent-endpoint.com",
-        "capabilities": ["text_generation", "reasoning"],
-        "description": "Expert Q&A and reasoning agent"
+        "task": "Analyze this quarterly report and summarize key findings",
+        # MeshAI automatically detects needed capabilities and routes to the best agent
     }
 )
 
-agent_id = response.json()["id"]
-print(f"Agent registered: {agent_id}")
+result = response.json()
+print(f"Task completed: {result}")
 ```
 
 #### MCP (Model Context Protocol) Integration
@@ -82,58 +80,69 @@ Execute tasks through MCP:
 }
 ```
 
-#### LangChain Integration
+#### Example Use Cases
 
 ```python
-from meshai import MeshAIClient
+import requests
 
-# Initialize client
-client = MeshAIClient(api_key="YOUR_API_KEY")
-
-# Register LangChain agent
-agent = client.register_agent(
-    name="langchain-qa-agent",
-    framework="langchain",
-    endpoint="https://your-agent.com/execute",
-    capabilities=["text_generation", "question_answering"],
-    config={
-        "model": "gpt-4",
-        "temperature": 0.7
+# Example 1: Text Generation - MeshAI finds the best LLM agent
+response = requests.post(
+    "https://api.meshai.dev/api/v1/tasks",
+    headers={
+        "Authorization": "Bearer YOUR_API_KEY",
+        "Content-Type": "application/json"
+    },
+    json={
+        "task": "What are the key trends in AI for 2024?"
     }
 )
 
-# Submit task
-result = await client.execute_task(
-    task="What are the key trends in AI for 2024?",
-    capabilities=["text_generation"],
-    routing_strategy="performance"
+# Example 2: Complex Research - MeshAI automatically uses CrewAI or similar
+response = requests.post(
+    "https://api.meshai.dev/api/v1/tasks",
+    headers={
+        "Authorization": "Bearer YOUR_API_KEY",
+        "Content-Type": "application/json"
+    },
+    json={
+        "task": "Research market trends and create a comprehensive report with data visualizations"
+        # MeshAI detects this needs ["research", "data_analysis", "text_generation"]
+        # and routes to appropriate multi-agent crew
+    }
+)
+
+# Example 3: Code Generation - Routes to specialized coding agents
+response = requests.post(
+    "https://api.meshai.dev/api/v1/tasks",
+    headers={
+        "Authorization": "Bearer YOUR_API_KEY",
+        "Content-Type": "application/json"
+    },
+    json={
+        "task": "Write a Python function to process CSV files and generate charts"
+    }
 )
 ```
 
-#### CrewAI Integration
+#### Advanced: Register Your Own Agents (Optional)
+
+If you have custom agents you want to add to the MeshAI network:
 
 ```python
-from meshai import MeshAIClient
-
-# Initialize client
-client = MeshAIClient(api_key="YOUR_API_KEY")
-
-# Register CrewAI crew as agent
-crew_agent = client.register_agent(
-    name="research-crew",
-    framework="crewai",
-    endpoint="https://your-crew.com/execute",
-    capabilities=["research", "text_generation", "data_analysis"],
-    config={
-        "crew_size": 3,
-        "roles": ["researcher", "analyst", "writer"]
+# Only needed if you want to contribute your own agents to the network
+response = requests.post(
+    "https://api.meshai.dev/api/v1/agents",
+    headers={
+        "Authorization": "Bearer YOUR_API_KEY",
+        "Content-Type": "application/json"
+    },
+    json={
+        "name": "my-custom-agent",
+        "framework": "langchain",  # or "crewai", "autogen", etc.
+        "endpoint": "https://your-agent-endpoint.com",
+        "capabilities": ["text_generation", "reasoning"],
+        "description": "Specialized agent for specific domain"
     }
-)
-
-# Execute crew task
-result = await client.execute_task(
-    task="Research and create a comprehensive report on market trends",
-    capabilities=["research", "text_generation"]
 )
 ```
 
@@ -153,24 +162,40 @@ MeshAI uses standardized capabilities for intelligent routing:
 
 ### 4. Submit Tasks
 
-#### Using the SDK
+#### Using Python with REST API
 
 ```python
-# Simple task submission
-result = await client.execute_task(
-    task="Explain quantum computing in simple terms"
-    # Capabilities auto-detected as ["text_generation"]
+import requests
+
+# Simple task submission - capabilities auto-detected
+response = requests.post(
+    "https://api.meshai.dev/api/v1/tasks",
+    headers={
+        "Authorization": "Bearer YOUR_API_KEY",
+        "Content-Type": "application/json"
+    },
+    json={
+        "task": "Explain quantum computing in simple terms"
+        # Capabilities auto-detected as ["text_generation"]
+    }
 )
 
 # Complex task with explicit capabilities
-result = await client.execute_task(
-    task="Analyze this dataset and create a Python visualization",
-    capabilities=["data_analysis", "code_generation"],
-    context={"dataset_url": "https://..."}
+response = requests.post(
+    "https://api.meshai.dev/api/v1/tasks",
+    headers={
+        "Authorization": "Bearer YOUR_API_KEY",
+        "Content-Type": "application/json"
+    },
+    json={
+        "task": "Analyze this dataset and create a Python visualization",
+        "capabilities": ["data_analysis", "code_generation"],
+        "context": {"dataset_url": "https://..."}
+    }
 )
 ```
 
-#### Using REST API
+#### Using cURL
 
 ```bash
 curl -X POST https://api.meshai.dev/api/v1/tasks \
