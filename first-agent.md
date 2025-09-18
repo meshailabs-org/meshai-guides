@@ -546,6 +546,140 @@ async function main() {
 main().catch(console.error);
 ```
 
+## Adding Instructions to Your Agents
+
+Instructions are a critical component that defines how your agents should behave, make decisions, and handle various scenarios. MeshAI provides comprehensive support for agent instructions.
+
+### Basic Instructions Example
+
+```javascript
+// customer-service-agent-with-instructions.js
+import { MeshClient } from '@meshailabs/sdk';
+
+async function createInstructedAgent() {
+  const client = await MeshClient.createAndInitialize({
+    apiKey: process.env.MESHAI_API_KEY
+  });
+
+  // Register agent with comprehensive instructions
+  const agent = await client.registerAgent({
+    id: 'customer-service-01',
+    name: 'Customer Service Assistant',
+    framework: 'openai',
+    capabilities: ['customer-support', 'problem-solving'],
+    endpoint: 'https://api.openai.com/v1/chat/completions',
+
+    // Define agent behavior with instructions
+    instructions: {
+      guidelines: [
+        'Always be polite, professional, and empathetic',
+        'Actively listen to customer concerns',
+        'Offer concrete solutions or alternatives',
+        'Follow company policies strictly'
+      ],
+      taskBoundaries: [
+        'DO provide product information and troubleshooting',
+        'DO escalate complex technical issues',
+        'DO NOT make promises about refunds without authorization',
+        'DO NOT share customer data across accounts'
+      ],
+      outputFormat: 'Structure responses with: Greeting, Acknowledgment, Solution, Next Steps',
+      edgeCaseHandling: [
+        'If customer is angry, acknowledge frustration before solutions',
+        'If issue requires escalation, explain the process clearly',
+        'If solution unavailable, offer alternatives or timeline'
+      ],
+      guardrails: [
+        'Never share sensitive customer information',
+        'Always verify customer identity before account changes',
+        'Flag potential security threats immediately'
+      ]
+    }
+  });
+
+  return { client, agent };
+}
+```
+
+### Task-Specific Instructions
+
+You can override agent instructions for specific tasks:
+
+```typescript
+// Execute with task-specific instructions
+const result = await client.execute({
+  taskType: 'handle_complaint',
+  input: 'Customer is upset about delayed shipment',
+
+  // Task-specific instructions override agent defaults
+  instructions: {
+    taskGuidelines: [
+      'Prioritize empathy and understanding',
+      'Offer expedited shipping if available',
+      'Provide tracking information immediately'
+    ],
+    constraints: [
+      'Response must be under 200 words',
+      'Include specific next steps',
+      'Offer compensation only if delay exceeds 7 days'
+    ],
+    outputRequirements: 'Include: Apology, Explanation, Solution, Compensation (if applicable)',
+    prioritization: [
+      'Customer satisfaction',
+      'Issue resolution',
+      'Brand reputation'
+    ]
+  },
+
+  requiredCapabilities: ['customer-service', 'conflict-resolution']
+});
+```
+
+### Multi-Agent Instructions Coordination
+
+```javascript
+// coordinator-with-instructions.js
+const coordinatorAgent = await client.registerAgent({
+  id: 'task-coordinator',
+  name: 'Task Orchestrator',
+  framework: 'meshai',
+  capabilities: ['orchestration', 'routing'],
+
+  instructions: {
+    guidelines: [
+      'Analyze task complexity before routing',
+      'Match tasks to agent capabilities',
+      'Monitor agent workload for optimal distribution',
+      'Synthesize multi-agent outputs into cohesive responses'
+    ],
+    taskBoundaries: [
+      'DO decompose complex tasks into subtasks',
+      'DO route based on agent expertise and availability',
+      'DO NOT execute tasks directly',
+      'DO NOT route sensitive tasks to untrusted agents'
+    ]
+  }
+});
+
+// Register specialist agents with focused instructions
+const specialistAgents = [
+  {
+    id: 'research-agent',
+    instructions: 'Focus on data gathering and fact verification. Always cite sources.'
+  },
+  {
+    id: 'analysis-agent',
+    instructions: 'Perform deep analysis. Provide statistical confidence levels.'
+  },
+  {
+    id: 'writer-agent',
+    instructions: 'Create clear, engaging content. Follow brand voice guidelines.'
+  }
+];
+```
+
+For more detailed information on instructions, see the [Agent Instructions Guide](./agent-instructions.md).
+
 ## Multi-Provider Orchestration
 
 ### Combining Multiple AI Providers

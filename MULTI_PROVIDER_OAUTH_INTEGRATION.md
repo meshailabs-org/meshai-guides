@@ -2,7 +2,7 @@
 
 ## Overview
 
-MeshAI's unified authentication service provides OAuth 2.1 authentication for multiple AI providers (ChatGPT, Claude, and others) to securely access MeshAI's agent orchestration platform through the MCP (Model Context Protocol).
+MeshAI's unified authentication service provides OAuth 2.1 authentication with JSON-RPC 2.0 support for multiple AI providers (ChatGPT, Claude, and others) to securely access MeshAI's agent orchestration platform through the MCP (Model Context Protocol).
 
 ## Quick Start
 
@@ -14,12 +14,19 @@ MeshAI's unified authentication service provides OAuth 2.1 authentication for mu
    - Enter URL: `https://auth.meshai.dev`
    - Complete OAuth authentication with your MeshAI credentials
 
-2. **Available Commands**:
+2. **Available Tools**:
+   - `search` - Search for agents, docs, and workflows
+   - `fetch` - Get detailed information about resources
    - `mesh_execute` - Run tasks through MeshAI agents
-   - `list_agents` - See available agents
+   - `list_agents` - Browse available agents
    - `submit_workflow` - Execute complex workflows
 
-That's it! ChatGPT can now orchestrate AI agents through MeshAI.
+3. **Streaming Support**:
+   - Real-time updates via Server-Sent Events (SSE)
+   - Progress tracking for long-running tasks
+   - Automatic streaming for supported operations
+
+That's it! ChatGPT can now orchestrate AI agents through MeshAI with full streaming support.
 
 ## Architecture
 
@@ -88,15 +95,41 @@ fetch('https://auth.meshai.dev/v1/mcp', {
 })
 ```
 
-## Available MCP Methods
+## Available MCP Tools
+
+### search
+Search across agents, documentation, and workflows.
+
+```json
+{
+  "name": "search",
+  "arguments": {
+    "query": "Your search query",
+    "type": "all|agents|docs|workflows"
+  }
+}
+```
+
+### fetch
+Get detailed information about a specific resource.
+
+```json
+{
+  "name": "fetch",
+  "arguments": {
+    "id": "resource-id",
+    "type": "agent|task|workflow"  // optional, defaults to agent
+  }
+}
+```
 
 ### mesh_execute
 Execute tasks using MeshAI's intelligent agent routing.
 
 ```json
 {
-  "method": "mesh_execute",
-  "params": {
+  "name": "mesh_execute",
+  "arguments": {
     "task": "Your task description",
     "task_type": "chat|analysis|code|creative",
     "capabilities": ["required", "capabilities"]
@@ -109,8 +142,8 @@ Discover available agents and their capabilities.
 
 ```json
 {
-  "method": "list_agents",
-  "params": {
+  "name": "list_agents",
+  "arguments": {
     "framework": "langchain|crewai|autogen",
     "capabilities": ["filter", "by", "capability"]
   }
@@ -122,8 +155,8 @@ Run complex multi-agent workflows.
 
 ```json
 {
-  "method": "submit_workflow",
-  "params": {
+  "name": "submit_workflow",
+  "arguments": {
     "workflow_type": "sequential|parallel",
     "payload": {
       "steps": [...]
